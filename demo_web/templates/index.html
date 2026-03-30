@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Nhận diện cảm xúc khuôn mặt</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        video {
+            width: 320px;
+            height: 240px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        #emotion {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        #probs {
+            margin-top: 10px;
+            font-size: 14px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nhận diện cảm xúc khuôn mặt</h1>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+    <div id="emotion">Emotion: ...</div>
+    <div id="probs"></div>
+
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const emotionEl = document.getElementById("emotion");
+        const probsEl = document.getElementById("probs");
+
+        // 1. Xin quyền sử dụng camera
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Không truy cập được camera:", err);
+                alert("Không truy cập được camera. Hãy kiểm tra quyền truy cập.");
+            }
+        }
+
+        // 2. Chụp frame và gửi lên server
+        async function captureAndSend() {
+            if (video.readyState !== 4) {
+                return;
+            }
+
+            // Vẽ frame hiện tại của video lên canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Lấy dataURL (base64)
+            const dataURL = canvas.toDataURL("image/jpeg", 0.8);
+
+            // Gửi lên backend
+            try {
+                const res = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ image: dataURL })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                // Cập nhật UI
+                emotionEl.textContent = "Emotion: " + data.emotion;
+
+                // Hiển thị probability từng class
+                if (data.probs) {
+                    let lines = [];
+                    for (const [cls, p] of Object.entries(data.probs)) {
+                        lines.push(`${cls}: ${(p * 100).toFixed(1)}%`);
+                    }
+                    probsEl.textContent = lines.join("\n");
+                }
+
+            } catch (err) {
+                console.error("Lỗi khi gọi /predict:", err);
+            }
+        }
+
+        // 3. Loop: mỗi 500ms gửi 1 frame
+        startCamera().then(() => {
+            setInterval(captureAndSend, 500); // 2 fps để đỡ nặng
+        });
+    </script>
+</body>
+</html>
