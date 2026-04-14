@@ -1,47 +1,23 @@
 import os
 
-# =========================
-# ĐƯỜNG DẪN CƠ BẢN
-# =========================
-
-# Thư mục gốc project (nơi đặt main.py)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Đường dẫn model
-# Đảm bảo trong thư mục models có file này, nếu bạn đang dùng tên khác
-# thì chỉ cần đổi lại cho đúng.
-# YOLO_WEIGHTS = os.path.join(BASE_DIR, "models", "yolov5n-face.pt")
 
 EMOTION_MODEL_PATH = os.path.join(BASE_DIR, "models", "fer_resnet_best_finetune.h5")
 
-# Đường dẫn dữ liệu demo
 IMAGE_DIR = os.path.join(BASE_DIR, "data", "images")
 VIDEO_DIR = os.path.join(BASE_DIR, "data", "videos")
 
-# Đường dẫn output
 OUTPUT_IMAGE_DIR = os.path.join(BASE_DIR, "output", "images")
 OUTPUT_VIDEO_DIR = os.path.join(BASE_DIR, "output", "videos")
-
-# =========================
-# THÔNG SỐ MÔ HÌNH CẢM XÚC (ResNet)
-# =========================
 
 CLASS_NAMES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 NUM_CLASSES = len(CLASS_NAMES)
 IMG_SIZE = (224, 224)
 EMOTION_MIN_CONF = 0.3
 
-# =========================
-# THÔNG SỐ YOLO FACE DETECTOR
-# =========================
-
 FACE_CONF_THRES = 0.40
 FACE_IOU_THRES = 0.50
 MAX_FACES = 10
-
-# =========================
-# THÔNG SỐ HIỂN THỊ (DRAWING)
-# =========================
 
 BOX_COLOR = (0, 255, 0)
 BOX_THICKNESS = 2
@@ -50,22 +26,10 @@ TEXT_FONT_SCALE = 0.7
 TEXT_THICKNESS = 2
 WINDOW_NAME = "YOLO + ResNet Emotion Demo"
 
-# =========================
-# THÔNG SỐ VIDEO
-# =========================
-
 DEFAULT_FPS = 25.0
 SHOW_VIDEO_WINDOW = True
 SAVE_VIDEO_RESULT = True
 SAVE_IMAGE_RESULT = True
-
-
-
-
-
-
-
-
 
 
 

@@ -3,6 +3,7 @@ import os
 
 from .yolo_face import load_yolo_model, detect_faces, draw_faces
 from .emotion_model import load_emotion_model, predict_emotion
+from .edge_detection import detect_edges, create_side_by_side
 from .config import (
     IMAGE_DIR,
     VIDEO_DIR,
@@ -15,7 +16,6 @@ from .config import (
 )
 from .utils import ensure_dir
 
-# Tải mô hình YOLO và ResNet một lần
 yolo_model = load_yolo_model()
 emotion_model = load_emotion_model()
 
@@ -43,20 +43,26 @@ def demo_image(image_path):
 
     img_bgr = draw_faces(img_bgr, faces, labels, confs)
 
+    edges = detect_edges(img_bgr)
+    combined = create_side_by_side(img_bgr, edges)
+
     if SAVE_IMAGE_RESULT:
         ensure_dir(OUTPUT_IMAGE_DIR)
         base_name = os.path.splitext(os.path.basename(image_path))[0]
         output_path = os.path.join(OUTPUT_IMAGE_DIR, "%s_result.jpg" % base_name)
+        edge_path = os.path.join(OUTPUT_IMAGE_DIR, "%s_edges.jpg" % base_name)
         cv2.imwrite(output_path, img_bgr)
+        cv2.imwrite(edge_path, combined)
         print("✅ Đã lưu ảnh kết quả:", output_path)
+        print("✅ Đã lưu ảnh phát hiện biên:", edge_path)
 
     cv2.imshow("Emotion Detection", img_bgr)
+    cv2.imshow("Edge Detection", combined)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
 def _init_video_writer(cap, output_path):
-    """Tạo VideoWriter với thông số từ cap."""
     fps = cap.get(cv2.CAP_PROP_FPS)
     if not fps or fps <= 0:
         fps = DEFAULT_FPS
@@ -69,7 +75,6 @@ def _init_video_writer(cap, output_path):
 
 
 def _process_stream(cap, save_path=None):
-    """Xử lý chung cho video file / webcam."""
     out = None
     if save_path is not None and SAVE_VIDEO_RESULT:
         ensure_dir(os.path.dirname(save_path))
@@ -97,8 +102,12 @@ def _process_stream(cap, save_path=None):
 
         frame = draw_faces(frame, faces, labels, confs)
 
+        edges = detect_edges(frame)
+        combined = create_side_by_side(frame, edges)
+
         if SHOW_VIDEO_WINDOW:
             cv2.imshow("Emotion Detection", frame)
+            cv2.imshow("Edge Detection", combined)
 
         if out is not None:
             out.write(frame)
@@ -113,7 +122,6 @@ def _process_stream(cap, save_path=None):
 
 
 def demo_video(video_path):
-    """Demo nhận dạng cảm xúc từ video file."""
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Error: Không thể mở video '%s'" % video_path)
@@ -124,20 +132,7 @@ def demo_video(video_path):
     _process_stream(cap, save_path)
 
 
-def demo_webcam(camera_index=0):
-    """Demo realtime dùng webcam. Nhấn 'q' để thoát."""
-    cap = cv2.VideoCapture(camera_index)
-    if not cap.isOpened():
-        print("Error: Không mở được webcam index %d" % camera_index)
-        return
-
-    # muốn lưu video webcam thì dùng chung _process_stream
-    save_path = os.path.join(OUTPUT_VIDEO_DIR, "webcam_result.mp4")
-    _process_stream(cap, save_path)
-
-
-def run_demo(input_path=None, demo_type="image", camera_index=0):
-    """Hàm điều phối: image / video / webcam."""
+def run_demo(input_path=None, demo_type="image"):
     demo_type = demo_type.lower()
 
     if demo_type == "image":
@@ -152,8 +147,5 @@ def run_demo(input_path=None, demo_type="image", camera_index=0):
             return
         demo_video(input_path)
 
-    elif demo_type == "webcam":
-        demo_webcam(camera_index)
-
     else:
-        print("Error: demo_type phải là 'image', 'video' hoặc 'webcam'.")
+        print("Error: demo_type phải là 'image' hoặc 'video'.")

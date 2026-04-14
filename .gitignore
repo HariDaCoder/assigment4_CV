@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv*/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model weights (large files)
+*.h5
+*.pb
+*.pt
+*.pth
+*.onnx
+
+# Dataset
+archive/
+FER2013_tien_xu_li/
+data/
+
+# Output
+demo/output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
